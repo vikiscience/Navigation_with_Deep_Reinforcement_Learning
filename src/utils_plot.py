@@ -19,9 +19,9 @@ def plot_history_rolling_mean(hist, N=const.rolling_mean_N):
     # annotate last_history and last_rolling point
     #last_points = [(len(hist) - 1, hist[-1]), (len(hist) - 1, y.iloc[-1])]
     last_points = [(len(hist) - 1, hist[-1])]
-    y_last = y.get(-1, None)
-    if y_last is not None:
-        last_points.append((len(hist) - 1, y_last))
+    if not y.empty:
+        last_points.append((len(hist) - 1, y.iloc[-1]))
+
     for (i, j) in last_points:
         ax.annotate('{:.2f}'.format(j), xy=(i, j), xytext=(i + 0.1, j))
 
