@@ -1,15 +1,12 @@
 import const
-from src.agent import DQNAgent
 from src import utils_plot
 
 import numpy as np
-import tensorflow as tf
 
 #################################################################################
 
 random_seed = const.random_seed
 np.random.seed(random_seed)  # before any keras imports !!!
-#tf.random.set_seed(random_seed)  # old: tf.set_random_seed todo
 
 eps_0 = 0.9
 decay_factor = 0.999
@@ -77,8 +74,8 @@ class DQNAlgo:
                 # Save transition to replay memory
                 self.agent.memorize(state, action, reward, next_state, done)
 
-                print('Episode {} of {}, t = {}, a = {}, r = {}'.format(e + 1, self.num_episodes,
-                                                                        t, action, reward))
+                #print('Episode {} of {}, t = {}, a = {}, r = {}'.format(e + 1, self.num_episodes,
+                #                                                        t, action, reward))
 
                 state = next_state
 
@@ -95,7 +92,8 @@ class DQNAlgo:
                           .format(e + 1, self.num_episodes, score, self.agent.epsilon), t)
                     break
 
-                if len(self.agent.memory) > replay_after:  # always replay after X time steps
+                # always replay after X time steps
+                if len(self.agent.memory) > max(replay_after, self.agent.batch_size):
                     # replay experience (generate random batch + fit)
                     self.agent.replay_minibatch()
 
