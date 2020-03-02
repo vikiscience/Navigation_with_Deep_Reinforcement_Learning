@@ -8,26 +8,30 @@ from collections import deque
 
 
 class DQNAgent:
-    use_double_dqn = False
-    model_path = const.model_path
+    use_double_dqn = False #True todo fix error
+    model_path = const.file_path_model
 
     def __init__(self, num_states, num_actions):
         self.num_states = num_states
         self.num_actions = num_actions
-        self.memory = deque(maxlen=2000)
+        self.memory = deque(maxlen=20000) # 2000
         self.gamma = 0.95  # discount rate
         self.epsilon = 1.0  # exploration rate
         self.epsilon_min = 0.01
-        self.epsilon_decay = 0.99
-        self.learning_rate = 0.01 #0.001
-        self.batch_size = 10  # 32
+        self.epsilon_decay = 0.9 #0.99
+        self.learning_rate = 0.0001
+        self.batch_size = 64 #32
         self.replay_after = 10
         self.update_target_each_iter = 100
+        self.fc1_num = 20
+        self.fc2_num = 10
 
         self.model = DQN(self.num_states, self.num_actions,
-                         self.learning_rate, self.batch_size)
+                         self.learning_rate, self.batch_size,
+                         fc1_num=self.fc1_num, fc2_num=self.fc2_num)
         self.target_model = DQN(self.num_states, self.num_actions,
-                         self.learning_rate, self.batch_size)
+                                self.learning_rate, self.batch_size,
+                                fc1_num=self.fc1_num, fc2_num=self.fc2_num)
         self.update_target_model()
 
     """Huber loss for Q Learning
@@ -50,34 +54,6 @@ class DQNAgent:
         a = np.random.choice(range(self.num_actions), p=probs)
         return a
 
-    def replay(self):
-        # Sample a minibatch from the replay memory
-        minibatch = random.sample(self.memory, self.batch_size)
-
-        # Calculate q values and targets (Double DQN)
-        for state, action, reward, next_state, done in minibatch:
-            # self.model.predict(state)
-            # target vector must have shape model_batch_size(=1) x num_actions
-            target = np.zeros((1, self.num_actions))
-            q_value_next = self.model.predict(next_state)[0]
-            best_action = np.argmax(q_value_next)  # todo - immer 2 dieselben
-
-            if done:
-                target[0][action] = reward
-            else:
-                ### a = self.model.predict(next_state)[0]
-                #t = self.target_model.predict(next_state)[0]
-                #target[0][action] = reward + self.gamma * np.amax(t)
-                ### target[0][action] = reward + self.gamma * t[np.argmax(a)]
-                q_value_next_target = self.target_model.predict(next_state)[0]
-                target[0][action] = reward + self.gamma * q_value_next_target[best_action]
-
-            # Perform gradient descent update
-            self.model.fit(state, target, epochs=1, verbose=0)
-
-        #if self.epsilon > self.epsilon_min:
-        #    self.epsilon *= self.epsilon_decay
-
     def replay_minibatch(self):
         # Sample a minibatch from the replay memory
         minibatch = random.sample(self.memory, self.batch_size)
@@ -91,9 +67,8 @@ class DQNAgent:
         else:
             targets_batch = self._weight_update_DQN(reward_batch, next_states_batch, done_batch)
 
-        #targets_batch_zeros = np.zeros(shape=(self.batch_size, self.num_states, ))
-        targets_batch_zeros = self.model.predict(states_batch, batch_size=self.batch_size)
-        print(targets_batch_zeros.shape)
+        # get predictions (output - all actions), one action value will be changed
+        targets_batch_zeros = self.model.predict(states_batch)
         for i, a, t in zip(range(self.batch_size), action_batch, targets_batch):
             targets_batch_zeros[i][a] = t
 
@@ -102,10 +77,7 @@ class DQNAgent:
         #      targets_batch.shape, targets_batch_zeros.shape)
 
         # Perform gradient descent update
-        self.model.fit(states_batch, targets_batch_zeros,
-                       batch_size=self.batch_size,
-                       epochs=1,
-                       verbose=0)
+        self.model.fit(states_batch, targets_batch_zeros)
 
     def load(self):
         print('Loading model from:', self.model_path)
@@ -117,8 +89,7 @@ class DQNAgent:
 
     def _weight_update_DQN(self, reward_batch, next_states_batch, done_batch):
         # Calculate q values and targets (DQN with fixed Q-targets)
-        q_values_next_target = self.target_model.predict(next_states_batch,
-                                                         batch_size=self.batch_size)
+        q_values_next_target = self.target_model.predict(next_states_batch)
         # Get max predicted Q values (for next states) from target model
         q_values_next_target_max = np.max(q_values_next_target, axis=1)
 
@@ -131,14 +102,11 @@ class DQNAgent:
         # Calculate q values and targets (Double DQN)
 
         # select best actions
-        q_values_next = self.model.predict(next_states_batch,
-                                           batch_size=self.batch_size)
+        q_values_next = self.model.predict(next_states_batch)
         best_actions = np.argmax(q_values_next, axis=1)
 
         # evaluate best actions
-        q_values_next_target = self.target_model.predict(next_states_batch,
-                                                         batch_size=self.batch_size)
+        q_values_next_target = self.target_model.predict(next_states_batch)
         targets_batch = reward_batch + np.invert(done_batch).astype(np.float32) * \
                         self.gamma * q_values_next_target[:, best_actions]
-                        #self.gamma * q_values_next_target[np.arange(self.batch_size), best_actions]
         return targets_batch
