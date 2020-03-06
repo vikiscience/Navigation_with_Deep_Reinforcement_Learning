@@ -26,9 +26,11 @@ class DQNAlgo:
         self.env = env
         self.brain_name = env.brain_names[0]
         self.agent = agent
-        self.num_episodes = num_episodes
         self.num_states = agent.num_states
         self.num_actions = agent.num_actions
+
+        # algo params
+        self.num_episodes = num_episodes
         self.eps_test = 0.05
 
     def train(self):
