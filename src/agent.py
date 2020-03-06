@@ -10,7 +10,8 @@ from collections import deque
 class DQNAgent:
     model_path = const.file_path_model
 
-    def __init__(self, num_states, num_actions,
+    def __init__(self, num_states: int = const.state_size,
+                 num_actions: int = const.action_size,
                  use_double_dqn: bool = const.use_double_dqn,
                  memory_size: int = const.memory_size,
                  update_target_each_iter: int = const.update_target_each_iter,
