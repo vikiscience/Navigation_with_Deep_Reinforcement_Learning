@@ -8,24 +8,21 @@ from collections import deque
 
 
 class DQNAgent:
-    use_double_dqn = False #True todo fix error
+    use_double_dqn = True #False
     model_path = const.file_path_model
 
     def __init__(self, num_states, num_actions):
-
-        # algo params
-        #self.replay_after = 10
-        self.update_target_each_iter = 4
 
         # agent params
         self.num_states = num_states
         self.num_actions = num_actions
         self.memory = deque(maxlen=const.memory_size)
+        self.update_target_each_iter = 4
         self.gamma = 0.95  # discount rate
+        self.batch_size = 64
 
         # model params
         self.learning_rate = 0.0001
-        self.batch_size = 64
         self.fc1_num = 32
         self.fc2_num = 16
 
@@ -84,30 +81,34 @@ class DQNAgent:
             targets_batch = self._weight_update_DQN(reward_batch, next_states_batch, done_batch)
 
         # get predictions (output - all actions), one action value will be changed
-        targets_batch_zeros = self.model.predict(states_batch)
+        expected_batch = self.model.predict(states_batch)
         for i, a, t in zip(range(self.batch_size), action_batch, targets_batch):
-            targets_batch_zeros[i][a] = t
+            expected_batch[i][a] = t
 
         #print(states_batch.shape, action_batch.shape, reward_batch.shape,
         #      next_states_batch.shape, done_batch.shape,
-        #      targets_batch.shape, targets_batch_zeros.shape)
+        #      targets_batch.shape, expected_batch.shape)
 
         # Perform gradient descent update
-        self.model.fit(states_batch, targets_batch_zeros)
+        self.model.fit(states_batch, expected_batch)
 
     def _weight_update_DQN(self, reward_batch, next_states_batch, done_batch):
-        # Calculate q values and targets (DQN with fixed Q-targets)
+        # DQN with fixed Q-targets
+
+        # Calculate Q values from target model for next states
         q_values_next_target = self.target_model.predict(next_states_batch)
-        # Get max predicted Q values (for next states) from target model
+
+        # Get max of these Q values
         q_values_next_target_max = np.max(q_values_next_target, axis=1)
 
         # Compute Q targets for current states
         targets_batch = reward_batch + np.invert(done_batch).astype(np.float32) * \
                         self.gamma * q_values_next_target_max
+
         return targets_batch
 
     def _weight_update_Double_DQN(self, reward_batch, next_states_batch, done_batch):
-        # Calculate q values and targets (Double DQN)
+        # Calculate Q values and targets (Double DQN)
 
         # select best actions
         q_values_next = self.model.predict(next_states_batch)
@@ -115,6 +116,12 @@ class DQNAgent:
 
         # evaluate best actions
         q_values_next_target = self.target_model.predict(next_states_batch)
+
+        q_values_next_target_argmax = np.zeros(self.batch_size)
+        for i, j in enumerate(best_actions):
+            q_values_next_target_argmax[i] = q_values_next_target[i][j]  # i = batch index, j = best action
+
         targets_batch = reward_batch + np.invert(done_batch).astype(np.float32) * \
-                        self.gamma * q_values_next_target[:, best_actions]
+                        self.gamma * q_values_next_target_argmax
+
         return targets_batch
