@@ -1,60 +1,71 @@
 import const
 
 import torch
-import numpy as np
+from torch import nn
+from torch.nn import functional as F
+from torch.optim import Adam
 
-import tensorflow as tf
-#from keras.models import Sequential
-#from keras.layers import Dense
-#from keras.optimizers import Adam
-#from keras import backend as K
+torch.random.manual_seed(const.random_seed)
 
 
-class DQN():
+class DQN(nn.Module):
 
     model_path = const.file_path_model
 
-    def __init__(self, num_inputs, num_outputs, lr, b):
+    def __init__(self, num_inputs=37, num_outputs=4, lr=0.0001, fc1_num=32, fc2_num=16):
+        super().__init__()
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs
         self.learning_rate = lr
-        self.batch_size = b
-        #self.model = self._build_model()
+        self.fc1_num = fc1_num
+        self.fc2_num = fc2_num
+        self._build_model()
 
-    def _huber_loss(self, y_true, y_pred, clip_delta=1.0):
-        error = y_true - y_pred
-        cond = K.abs(error) <= clip_delta
-
-        squared_loss = 0.5 * K.square(error)
-        quadratic_loss = 0.5 * K.square(clip_delta) + clip_delta * (K.abs(error) - clip_delta)
-
-        return K.mean(tf.where(cond, squared_loss, quadratic_loss))
+        self.criterion = nn.MSELoss()
+        self.optimizer = Adam(self.model.parameters(), lr=self.learning_rate)
 
     def _build_model(self):
         # Neural Net for Deep-Q learning Model
-        model = Sequential()
-        model.add(Dense(1024, input_dim=self.state_size, activation='elu'))
-        model.add(Dense(512, activation='elu'))
-        model.add(Dense(self.action_size, activation='linear'))
-        loss_foo = 'mse' #self._huber_loss
-        model.compile(loss=loss_foo,
-                      optimizer=Adam(lr=self.learning_rate))
-        return model
+        self.fc1 = nn.Linear(self.num_inputs, self.fc1_num)
+        self.fc2 = nn.Linear(self.fc1_num, self.fc2_num)
+        self.fc3 = nn.Linear(self.fc2_num, self.num_outputs)
 
-    def fit(self, X, y, batch_size=1, epochs=1, verbose=0):
-        pass
+        self.model = nn.Sequential(self.fc1, nn.ELU(), self.fc2, nn.ELU(), self.fc3)
+        print(self.model)
 
-    def predict(self, X, batch_size=1):
-        return np.random.random(size=(batch_size, self.num_outputs))
+    def fit(self, X, y):
+        x_tensor = torch.Tensor(X)
+        y_tensor = torch.Tensor(y)
+
+        # Clear the gradients
+        self.optimizer.zero_grad()
+
+        # Forward pass, backward pass, update weights
+        output = self.model.forward(x_tensor)
+        loss = self.criterion(output, y_tensor)
+        loss.backward()
+        self.optimizer.step()
+
+    def predict(self, X):
+        x_tensor = torch.Tensor(X)
+
+        self.model.eval()
+        with torch.no_grad():
+            result = self.model(x_tensor).detach().numpy()
+        self.model.train()
+
+        return result
 
     def get_weights(self):
-        pass
+        return self.model.parameters()
 
-    def set_weights(self, W):
-        pass
+    def set_weights(self, params):
+        for target_param, source_param in zip(self.model.parameters(), params):
+            target_param.data.copy_(source_param.data)
 
     def save_weights(self, fp=None):
-        pass
+        torch.save(self.model.state_dict(), fp)
 
     def load_weights(self, fp=None):
-        pass
+        self.model.load_state_dict(torch.load(fp))
+        self.model.eval()  # change the model to evaluation mode (to use only for inference)
