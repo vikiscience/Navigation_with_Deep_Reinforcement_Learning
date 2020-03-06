@@ -14,14 +14,14 @@ class DQNAgent:
     def __init__(self, num_states, num_actions):
         self.num_states = num_states
         self.num_actions = num_actions
-        self.memory = deque(maxlen=20000) # 2000
+        self.memory = deque(maxlen=20000)  # 2000
         self.gamma = 0.95  # discount rate
         self.learning_rate = 0.0001
         self.batch_size = 64 #32
         self.replay_after = 10
-        self.update_target_each_iter = 100
-        self.fc1_num = 20
-        self.fc2_num = 10
+        self.update_target_each_iter = 4
+        self.fc1_num = 32
+        self.fc2_num = 16
 
         self.model = DQN(self.num_states, self.num_actions,
                          self.learning_rate, self.batch_size,
@@ -30,11 +30,6 @@ class DQNAgent:
                                 self.learning_rate, self.batch_size,
                                 fc1_num=self.fc1_num, fc2_num=self.fc2_num)
         self.update_target_model()
-
-    """Huber loss for Q Learning
-    References: https://en.wikipedia.org/wiki/Huber_loss
-                https://www.tensorflow.org/api_docs/python/tf/losses/huber_loss
-    """
 
     def update_target_model(self):
         self.target_model.set_weights(self.model.get_weights())
@@ -45,7 +40,7 @@ class DQNAgent:
     def act(self, state, eps):
         # e-greedy policy for Q
         probs = np.full(self.num_actions, eps / self.num_actions)
-        q_values = self.model.predict(state)[0]
+        q_values = self.model.predict(state)
         best_a = np.argmax(q_values)
         probs[best_a] += 1 - eps
         a = np.random.choice(range(self.num_actions), p=probs)
