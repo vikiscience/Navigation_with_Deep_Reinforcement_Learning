@@ -15,7 +15,7 @@ BATCH_SIZE = 64         # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
 LR = 5e-4               # learning rate
-UPDATE_EVERY = 100 #4        # how often to update the network
+UPDATE_EVERY = 4        # how often to update network (old: learn ?!)
 
 ###############################################################################
 
@@ -66,7 +66,6 @@ class Agent():
         self.batch_size = BATCH_SIZE
         self.replay_after = BATCH_SIZE
         self.update_target_each_iter = UPDATE_EVERY
-        self.epsilon = 1.0  # exploration rate
         self.seed = random.seed(seed)
 
         # Q-Network

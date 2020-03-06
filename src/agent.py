@@ -16,9 +16,6 @@ class DQNAgent:
         self.num_actions = num_actions
         self.memory = deque(maxlen=20000) # 2000
         self.gamma = 0.95  # discount rate
-        self.epsilon = 1.0  # exploration rate
-        self.epsilon_min = 0.01
-        self.epsilon_decay = 0.9 #0.99
         self.learning_rate = 0.0001
         self.batch_size = 64 #32
         self.replay_after = 10
