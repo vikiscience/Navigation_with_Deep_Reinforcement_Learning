@@ -50,7 +50,7 @@ class QNetwork(nn.Module):
 
 class Agent():
     """Interacts with and learns from the environment."""
-    model_path = const.file_path_model
+    model_path = const.file_path_ref_model
 
     def __init__(self, num_states, num_actions, seed):
         """Initialize an Agent object.
@@ -165,15 +165,20 @@ class Agent():
         experiences = self.memory.sample()
         self.learn(experiences, GAMMA)
 
-    def save(self):
+    def save(self, fp=None):
         #print('Saving model to:', self.model_path)
         #self.qnetwork_target.save_weights(str(self.model_path))
-        pass
+        if fp is None:
+            fp = str(self.model_path)
+        torch.save(self.qnetwork_target.state_dict(), fp)
 
-    def load(self):
+    def load(self, fp=None):
         #print('Loading model from:', self.model_path)
         #self.qnetwork_target.load_weights(str(self.model_path))
-        pass
+        if fp is None:
+            fp = str(self.model_path)
+        self.qnetwork_target.load_state_dict(torch.load(fp))
+        self.qnetwork_target.eval()  # change the model to evaluation mode (to use only for inference)
 
 
 class ReplayBuffer:

@@ -113,7 +113,7 @@ class DQNAlgo:
         state = env_info.vector_observations[0]  # get the current state
         score = 0  # initialize the score
         while True:
-            action = self.agent.act(state, epsilon=self.eps_test)  # select an action
+            action = self.agent.act(state, eps=self.eps_test)  # select an action
             env_info = self.env.step(action)[self.brain_name]  # send the action to the environment
             next_state = env_info.vector_observations[0]  # get the next state
             reward = env_info.rewards[0]  # get the reward

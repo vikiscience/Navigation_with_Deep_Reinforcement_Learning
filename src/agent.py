@@ -42,12 +42,12 @@ class DQNAgent:
     def memorize(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
 
-    def act(self, state, epsilon):
+    def act(self, state, eps):
         # e-greedy policy for Q
-        probs = np.full(self.num_actions, epsilon / self.num_actions)
+        probs = np.full(self.num_actions, eps / self.num_actions)
         q_values = self.model.predict(state)[0]
         best_a = np.argmax(q_values)
-        probs[best_a] += 1 - epsilon
+        probs[best_a] += 1 - eps
         a = np.random.choice(range(self.num_actions), p=probs)
         return a
 
