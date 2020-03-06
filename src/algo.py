@@ -2,27 +2,14 @@ import const
 from src import utils_plot
 
 
-eps_0 = 0.9
-decay_factor = 0.999
-eps_min = 0.01
-
-#################################################################################
-
-
-def get_glie(eps=None):
-    if eps is None:
-        eps_i = eps_0
-    else:
-        eps_i = eps * decay_factor
-    return max(eps_i, eps_min)
-
-
-#################################################################################
-
-
 class DQNAlgo:
 
-    def __init__(self, env, agent, num_episodes: int = const.num_episodes):
+    def __init__(self, env, agent,
+                 num_episodes: int = const.num_episodes,
+                 eps_0: float = const.eps_0,
+                 eps_decay_factor: float = const.eps_decay_factor,
+                 eps_min: float = const.eps_min,
+                 eps_test: float = const.eps_test):
         self.env = env
         self.brain_name = env.brain_names[0]
         self.agent = agent
@@ -31,7 +18,10 @@ class DQNAlgo:
 
         # algo params
         self.num_episodes = num_episodes
-        self.eps_test = 0.05
+        self.eps_0 = eps_0
+        self.eps_decay_factor = eps_decay_factor
+        self.eps_min = eps_min
+        self.eps_test = eps_test
 
     def train(self):
 
@@ -43,7 +33,7 @@ class DQNAlgo:
             state = env_info.vector_observations[0]  # get the current state (s_t)
             score = 0  # initialize the score
 
-            eps = get_glie(eps)  # decay epsilon
+            eps = self._get_glie(eps)  # decay epsilon
             done = False
             t = 0
 
@@ -96,3 +86,10 @@ class DQNAlgo:
         print("Score: {}".format(score))
 
         self.env.close()
+
+    def _get_glie(self, eps=None):
+        if eps is None:
+            eps_i = self.eps_0
+        else:
+            eps_i = eps * self.eps_decay_factor
+        return max(eps_i, self.eps_min)

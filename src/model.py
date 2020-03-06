@@ -12,7 +12,11 @@ class DQN(nn.Module):
 
     model_path = const.file_path_model
 
-    def __init__(self, num_inputs=37, num_outputs=4, lr=0.0001, fc1_num=32, fc2_num=16):
+    def __init__(self, num_inputs: int = const.state_size,
+                 num_outputs: int = const.action_size,
+                 lr: float = const.model_learning_rate,
+                 fc1_num: int = const.model_fc1_num,
+                 fc2_num: int = const.model_fc2_num):
         super().__init__()
         self.num_inputs = num_inputs
         self.num_outputs = num_outputs

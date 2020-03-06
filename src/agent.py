@@ -8,28 +8,39 @@ from collections import deque
 
 
 class DQNAgent:
-    use_double_dqn = True #False
     model_path = const.file_path_model
 
-    def __init__(self, num_states, num_actions):
+    def __init__(self, num_states, num_actions,
+                 use_double_dqn: bool = const.use_double_dqn,
+                 memory_size: int = const.memory_size,
+                 update_target_each_iter: int = const.update_target_each_iter,
+                 gamma: float = const.gamma,
+                 batch_size: int = const.batch_size,
+                 model_learning_rate: float = const.model_learning_rate,
+                 model_fc1_num: int = const.model_fc1_num,
+                 model_fc2_num: int = const.model_fc2_num
+                 ):
 
         # agent params
         self.num_states = num_states
         self.num_actions = num_actions
-        self.memory = deque(maxlen=const.memory_size)
-        self.update_target_each_iter = 4
-        self.gamma = 0.95  # discount rate
-        self.batch_size = 64
+        self.use_double_dqn = use_double_dqn
+        self.memory = deque(maxlen=memory_size)
+        self.update_target_each_iter = update_target_each_iter
+        self.gamma = gamma
+        self.batch_size = batch_size
 
         # model params
-        self.learning_rate = 0.0001
-        self.fc1_num = 32
-        self.fc2_num = 16
+        self.model_learning_rate = model_learning_rate
+        self.model_fc1_num = model_fc1_num
+        self.model_fc2_num = model_fc2_num
 
-        self.model = DQN(self.num_states, self.num_actions, self.learning_rate,
-                         fc1_num=self.fc1_num, fc2_num=self.fc2_num)
-        self.target_model = DQN(self.num_states, self.num_actions, self.learning_rate,
-                                fc1_num=self.fc1_num, fc2_num=self.fc2_num)
+        self.model = DQN(num_inputs=self.num_states, num_outputs=self.num_actions,
+                         lr=self.model_learning_rate,
+                         fc1_num=self.model_fc1_num, fc2_num=self.model_fc2_num)
+        self.target_model = DQN(num_inputs=self.num_states, num_outputs=self.num_actions,
+                                lr=self.model_learning_rate,
+                                fc1_num=self.model_fc1_num, fc2_num=self.model_fc2_num)
 
     def act(self, state, eps):
         # epsilon-greedy policy for Q
@@ -48,8 +59,8 @@ class DQNAgent:
             # replay experience (generate random batch + fit)
             self._replay_minibatch()
 
+        # update target model
         if t % self.update_target_each_iter == 0 or done:
-            # update target model
             # print('>>> Updating target model')
             self._update_target_model()
 

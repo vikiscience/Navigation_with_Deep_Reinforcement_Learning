@@ -52,7 +52,7 @@ class Agent:
     """Interacts with and learns from the environment."""
     model_path = const.file_path_ref_model
 
-    def __init__(self, num_states, num_actions, seed):
+    def __init__(self, num_states, num_actions, seed=const.random_seed):
         """Initialize an Agent object.
 
         Params
