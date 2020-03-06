@@ -48,7 +48,7 @@ class QNetwork(nn.Module):
 ###############################################################################
 
 
-class Agent():
+class Agent:
     """Interacts with and learns from the environment."""
     model_path = const.file_path_ref_model
 
@@ -78,17 +78,17 @@ class Agent():
         # Initialize time step (for updating every UPDATE_EVERY steps)
         self.t_step = 0
 
-    def step(self, state, action, reward, next_state, done):
-        # Save experience in replay memory
-        self.memory.add(state, action, reward, next_state, done)
-
-        # Learn every UPDATE_EVERY time steps.
-        self.t_step = (self.t_step + 1) % UPDATE_EVERY
-        if self.t_step == 0:
-            # If enough samples are available in memory, get random subset and learn
-            if len(self.memory) > BATCH_SIZE:
-                experiences = self.memory.sample()
-                self.learn(experiences, GAMMA)
+    #def step(self, state, action, reward, next_state, done):
+    #    # Save experience in replay memory
+    #    self.memory.add(state, action, reward, next_state, done)
+    #
+    #    # Learn every UPDATE_EVERY time steps.
+    #    self.t_step = (self.t_step + 1) % UPDATE_EVERY
+    #    if self.t_step == 0:
+    #        # If enough samples are available in memory, get random subset and learn
+    #        if len(self.memory) > BATCH_SIZE:
+    #            experiences = self.memory.sample()
+    #            self.learn(experiences, GAMMA)
 
     def act(self, state, eps=0.):
         """Returns actions for given state as per current policy.
@@ -175,6 +175,9 @@ class Agent():
             fp = str(self.model_path)
         self.qnetwork_local.load_state_dict(torch.load(fp))  # load the model used for inference in "act"
         self.qnetwork_local.eval()  # change the model to evaluation mode (to use only for inference)
+
+
+###############################################################################
 
 
 class ReplayBuffer:
