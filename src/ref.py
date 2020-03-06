@@ -166,19 +166,15 @@ class Agent():
         self.learn(experiences, GAMMA)
 
     def save(self, fp=None):
-        #print('Saving model to:', self.model_path)
-        #self.qnetwork_target.save_weights(str(self.model_path))
         if fp is None:
             fp = str(self.model_path)
         torch.save(self.qnetwork_target.state_dict(), fp)
 
     def load(self, fp=None):
-        #print('Loading model from:', self.model_path)
-        #self.qnetwork_target.load_weights(str(self.model_path))
         if fp is None:
             fp = str(self.model_path)
-        self.qnetwork_target.load_state_dict(torch.load(fp))
-        self.qnetwork_target.eval()  # change the model to evaluation mode (to use only for inference)
+        self.qnetwork_local.load_state_dict(torch.load(fp))  # load the model used for inference in "act"
+        self.qnetwork_local.eval()  # change the model to evaluation mode (to use only for inference)
 
 
 class ReplayBuffer:
