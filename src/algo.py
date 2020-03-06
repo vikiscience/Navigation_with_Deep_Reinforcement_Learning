@@ -49,20 +49,20 @@ class DQNAlgo:
         update_target_each_iter = self.agent.update_target_each_iter
 
         history = []
+        eps = None
 
         for e in range(self.num_episodes):
             env_info = self.env.reset(train_mode=True)[self.brain_name]  # reset the environment
             state = env_info.vector_observations[0]  # get the current state (s_t)
             score = 0  # initialize the score
 
-            eps = None  # get_glie(eps)  # todo: decay epsilon per episode???
+            eps = get_glie(eps)  # decay epsilon
             done = False
             t = 0
 
             while not done:
-                eps = get_glie(eps)  # decay epsilon
 
-                # choose a_t using policy ???
+                # choose a_t using epsilon-greedy policy
                 action = self.agent.act(state, eps)
 
                 # take action a_t, observe r_{t+1} and s_{t+1}
@@ -89,7 +89,7 @@ class DQNAlgo:
 
                 if done:
                     print('-' * 80, "\nEpisode: {}/{}, score: {}, e: {:.2}"
-                          .format(e + 1, self.num_episodes, score, self.agent.epsilon), t)
+                          .format(e + 1, self.num_episodes, score, eps), t)
                     break
 
                 # always replay after X time steps
