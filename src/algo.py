@@ -1,24 +1,12 @@
 import const
 from src import utils_plot
 
-import numpy as np
-
-#################################################################################
-
-random_seed = const.random_seed
-np.random.seed(random_seed)  # before any keras imports !!!
 
 eps_0 = 0.9
 decay_factor = 0.999
 eps_min = 0.01
 
 #################################################################################
-
-
-def reshape_state(s, state_size):
-    state = np.array([(0 if i != s else 1) for i in range(state_size)])
-    state = np.reshape(state, (1, state_size))
-    return state
 
 
 def get_glie(eps=None):
@@ -45,9 +33,6 @@ class DQNAlgo:
 
     def train(self):
 
-        replay_after = self.agent.replay_after
-        update_target_each_iter = self.agent.update_target_each_iter
-
         history = []
         eps = None
 
@@ -71,35 +56,18 @@ class DQNAlgo:
                 reward = env_info.rewards[0]  # get the reward
                 done = env_info.local_done[0]  # see if episode has finished
 
-                # Save transition to replay memory
-                self.agent.memorize(state, action, reward, next_state, done)
-
-                #print('Episode {} of {}, t = {}, a = {}, r = {}'.format(e + 1, self.num_episodes,
-                #                                                        t, action, reward))
+                # Memorize new sample, replay, update target network
+                self.agent.do_stuff(state, action, reward, next_state, done, t)
 
                 state = next_state
-
                 score += reward
                 t += 1
 
-                if t % update_target_each_iter == 0 or done:
-                    # update target model
-                    print('>>> Updating target model')
-                    self.agent.update_target_model()
-
-                if done:
-                    print('-' * 80, "\nEpisode: {}/{}, score: {}, e: {:.2}"
-                          .format(e + 1, self.num_episodes, score, eps), t)
-                    break
-
-                # always replay after X time steps
-                if len(self.agent.memory) > max(replay_after, self.agent.batch_size):
-                    # replay experience (generate random batch + fit)
-                    self.agent.replay_minibatch()
-
+            print('-' * 80, "\nEpisode: {}/{}, score: {}, e: {:.2}"
+                  .format(e + 1, self.num_episodes, score, eps), t)
             history.append(score)
 
-            if (e + 1) % 10 == 0 or e + 1 == self.num_episodes:
+            if (e + 1) % 100 == 0 or e + 1 == self.num_episodes:
                 self.agent.save()
 
         print('History:', history)

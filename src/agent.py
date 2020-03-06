@@ -12,33 +12,30 @@ class DQNAgent:
     model_path = const.file_path_model
 
     def __init__(self, num_states, num_actions):
+
+        # algo params
+        #self.replay_after = 10
+        self.update_target_each_iter = 4
+
+        # agent params
         self.num_states = num_states
         self.num_actions = num_actions
-        self.memory = deque(maxlen=20000)  # 2000
+        self.memory = deque(maxlen=const.memory_size)
         self.gamma = 0.95  # discount rate
+
+        # model params
         self.learning_rate = 0.0001
-        self.batch_size = 64 #32
-        self.replay_after = 10
-        self.update_target_each_iter = 4
+        self.batch_size = 64
         self.fc1_num = 32
         self.fc2_num = 16
 
-        self.model = DQN(self.num_states, self.num_actions,
-                         self.learning_rate, self.batch_size,
+        self.model = DQN(self.num_states, self.num_actions, self.learning_rate,
                          fc1_num=self.fc1_num, fc2_num=self.fc2_num)
-        self.target_model = DQN(self.num_states, self.num_actions,
-                                self.learning_rate, self.batch_size,
+        self.target_model = DQN(self.num_states, self.num_actions, self.learning_rate,
                                 fc1_num=self.fc1_num, fc2_num=self.fc2_num)
-        self.update_target_model()
-
-    def update_target_model(self):
-        self.target_model.set_weights(self.model.get_weights())
-
-    def memorize(self, state, action, reward, next_state, done):
-        self.memory.append((state, action, reward, next_state, done))
 
     def act(self, state, eps):
-        # e-greedy policy for Q
+        # epsilon-greedy policy for Q
         probs = np.full(self.num_actions, eps / self.num_actions)
         q_values = self.model.predict(state)
         best_a = np.argmax(q_values)
@@ -46,7 +43,34 @@ class DQNAgent:
         a = np.random.choice(range(self.num_actions), p=probs)
         return a
 
-    def replay_minibatch(self):
+    def do_stuff(self, state, action, reward, next_state, done, t):
+        self._memorize(state, action, reward, next_state, done)
+
+        # always replay after each time step, if the memory is large enough
+        if len(self.memory) >= self.batch_size:
+            # replay experience (generate random batch + fit)
+            self._replay_minibatch()
+
+        if t % self.update_target_each_iter == 0 or done:
+            # update target model
+            # print('>>> Updating target model')
+            self._update_target_model()
+
+    def load(self):
+        print('Loading model from:', self.model_path)
+        self.model.load_weights(str(self.model_path))
+
+    def save(self):
+        print('Saving model to:', self.model_path)
+        self.model.save_weights(str(self.model_path))
+
+    def _memorize(self, state, action, reward, next_state, done):
+        self.memory.append((state, action, reward, next_state, done))
+
+    def _update_target_model(self):
+        self.target_model.set_weights(self.model.get_weights())
+
+    def _replay_minibatch(self):
         # Sample a minibatch from the replay memory
         minibatch = random.sample(self.memory, self.batch_size)
 
@@ -70,14 +94,6 @@ class DQNAgent:
 
         # Perform gradient descent update
         self.model.fit(states_batch, targets_batch_zeros)
-
-    def load(self):
-        print('Loading model from:', self.model_path)
-        self.model.load_weights(str(self.model_path))
-
-    def save(self):
-        print('Saving model to:', self.model_path)
-        self.model.save_weights(str(self.model_path))
 
     def _weight_update_DQN(self, reward_batch, next_states_batch, done_batch):
         # Calculate q values and targets (DQN with fixed Q-targets)

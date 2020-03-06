@@ -114,7 +114,41 @@ class Agent:
         #print(action, type(action))
         return action
 
-    def learn(self, experiences, gamma):
+    def do_stuff(self, state, action, reward, next_state, done, t):
+        self._memorize(state, action, reward, next_state, done)
+
+        # always replay after each time step, if the memory is large enough
+        if len(self.memory) >= self.batch_size:
+            # replay experience (generate random batch + fit)
+            self._replay_minibatch()
+
+        if t % self.update_target_each_iter == 0 or done:
+            # update target model
+            # print('>>> Updating target model')
+            self._update_target_model()
+
+    def save(self, fp=None):
+        if fp is None:
+            fp = str(self.model_path)
+        torch.save(self.qnetwork_target.state_dict(), fp)
+
+    def load(self, fp=None):
+        if fp is None:
+            fp = str(self.model_path)
+        self.qnetwork_local.load_state_dict(torch.load(fp))  # load the model used for inference in "act"
+        self.qnetwork_local.eval()  # change the model to evaluation mode (to use only for inference)
+
+    def _memorize(self, state, action, reward, next_state, done):
+        self.memory.add(state, action, reward, next_state, done)
+
+    def _update_target_model(self):
+        self._soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
+
+    def _replay_minibatch(self):
+        experiences = self.memory.sample()
+        self._learn(experiences, GAMMA)
+
+    def _learn(self, experiences, gamma):
         """Update value parameters using given batch of experience tuples.
 
         Params
@@ -140,9 +174,9 @@ class Agent:
         self.optimizer.step()
 
         # ------------------- update target network ------------------- #
-        #self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
+        #self._soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
 
-    def soft_update(self, local_model, target_model, tau):
+    def _soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
         θ_target = τ*θ_local + (1 - τ)*θ_target
 
@@ -154,27 +188,6 @@ class Agent:
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau * local_param.data + (1.0 - tau) * target_param.data)
-
-    def memorize(self, state, action, reward, next_state, done):
-        self.memory.add(state, action, reward, next_state, done)
-
-    def update_target_model(self):
-        self.soft_update(self.qnetwork_local, self.qnetwork_target, TAU)
-
-    def replay_minibatch(self):
-        experiences = self.memory.sample()
-        self.learn(experiences, GAMMA)
-
-    def save(self, fp=None):
-        if fp is None:
-            fp = str(self.model_path)
-        torch.save(self.qnetwork_target.state_dict(), fp)
-
-    def load(self, fp=None):
-        if fp is None:
-            fp = str(self.model_path)
-        self.qnetwork_local.load_state_dict(torch.load(fp))  # load the model used for inference in "act"
-        self.qnetwork_local.eval()  # change the model to evaluation mode (to use only for inference)
 
 
 ###############################################################################

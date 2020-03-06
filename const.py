@@ -9,3 +9,4 @@ file_path_img_score = output_path / 'score.png'
 random_seed = 0xABCD
 num_episodes = 2000
 rolling_mean_N = 100
+memory_size = 20000
