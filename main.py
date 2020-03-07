@@ -1,57 +1,38 @@
 import const
-from src import agent, algo, ref
+from src import agent, algo, ref, hyperparameter_search, utils_env
 
 import numpy as np
-from unityagents import UnityEnvironment
 
 random_seed = const.random_seed
 np.random.seed(random_seed)
 
-
-def get_info(env: UnityEnvironment):
-    # get the default brain
-    brain_name = env.brain_names[0]
-    brain = env.brains[brain_name]
-
-    # reset the environment
-    env_info = env.reset(train_mode=True)[brain_name]
-
-    # number of agents in the environment
-    print('Number of agents:', len(env_info.agents))
-
-    # number of actions
-    action_size = brain.vector_action_space_size
-    print('Number of actions:', action_size)
-
-    # examine the state space
-    state = env_info.vector_observations[0]
-    print('States look like:', state)
-    state_size = len(state)
-    print('States have length:', state_size)
-
-    return state_size, action_size
+#state_size, action_size = utils_env.get_info()
+state_size = const.state_size
+action_size = const.action_size
+N = const.rolling_mean_N
 
 
-def train_default_algo(test_only=False):
-    env = UnityEnvironment(file_name=const.file_name_env)
-
-    # state_size, action_size = get_info(env)
-    state_size = const.state_size
-    action_size = const.action_size
-
+def train_default_algo():
     # use default params
-    ag = agent.DQNAgent(state_size, action_size)
-    # ag = ref.Agent(state_size, action_size)
-    al = algo.DQNAlgo(env, ag)
+    ag = agent.DQNAgent()
+    # ag = ref.Agent()
+    al = algo.DQNAlgo(utils_env.env, ag)
+    al.train()
 
-    if test_only:
-        al.test()
-    else:
-        al.train()
+
+def test_default_algo():
+    # use default params
+    ag = agent.DQNAgent()
+    # ag = ref.Agent()
+    al = algo.DQNAlgo(utils_env.env, ag)
+    al.test()
 
 
 if __name__ == '__main__':
-    train_default_algo(test_only=False)
+    #train_default_algo()
+    #test_default_algo()
+
+    hyperparameter_search.grid_search()
 
     #hist = [0.0, 4.0, 0.0, 1.0, -3.0, 0.0, 2.0, 0.0, 0.0, 0.0, 1.0, 1.0, -1.0, 0.0, -1.0, 3.0, 1.0, 0.0, 2.0, -3.0, 1.0, -1.0, 0.0, 0.0, 2.0, -2.0, 5.0, 2.0, 0.0, 0.0, 0.0, -2.0, -1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 1.0, 0.0, -5.0, 2.0, 0.0, 0.0, 2.0, -1.0, -2.0, 1.0, 1.0, 0.0, -2.0, -2.0, 0.0, -1.0, 2.0, 1.0, 1.0, 0.0, 2.0, -1.0, -2.0, 1.0, 0.0, 0.0, -3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, -1.0, 1.0, 0.0, 1.0, -1.0, 1.0, 1.0, 2.0, 1.0, 2.0, 0.0, 0.0, 0.0, 1.0, 0.0, 2.0, -2.0, 0.0, 0.0, -1.0, 0.0, -1.0, 0.0, 0.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, -3.0, 0.0, -2.0, 2.0, -3.0, 0.0, 1.0, 1.0, 1.0, -1.0, 0.0, 1.0, 2.0, -1.0, 1.0, 0.0, 0.0, 0.0, -2.0, -1.0, -1.0, 0.0, 1.0, 5.0, 1.0, 0.0, -1.0, -1.0, 0.0, 0.0, 2.0, -3.0, 0.0, 0.0, -3.0, 2.0, 3.0, -2.0, -2.0, 1.0, -1.0, 0.0, -1.0, -3.0, 0.0, 0.0, 0.0, 0.0, 2.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, -2.0, -3.0, -1.0, -2.0, 0.0, -2.0, 2.0, -2.0, -2.0, 0.0, 0.0, 1.0, -3.0, 3.0, 0.0, 1.0, -3.0, -2.0, -1.0, 1.0, 2.0, 1.0, 0.0, 1.0, 0.0, -1.0, 0.0, 0.0, -1.0, -1.0, -1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0, 3.0, -3.0, 1.0, 1.0, -2.0, -3.0, -1.0, -1.0, 2.0, 0.0, -3.0, -2.0, 0.0, 0.0, 0.0, 0.0, 2.0, 1.0, 0.0, -1.0, 0.0, 0.0, -2.0, -1.0, -1.0, 0.0, -1.0, -2.0, 1.0, 2.0, 1.0, 0.0, 2.0, 1.0, 1.0, -1.0, 0.0, 1.0, -2.0, 4.0, -1.0, 1.0, -1.0, -1.0, 1.0, 2.0, 0.0, 2.0, 2.0, 0.0, 0.0, 1.0, 0.0, 0.0, -3.0, 1.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -3.0, 2.0, -2.0, -2.0, 0.0, 0.0, 2.0, 0.0, 0.0, -2.0, 1.0, -2.0, 1.0, 3.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 0.0, 2.0, 0.0, 1.0, 0.0, 2.0, -1.0, 0.0, -1.0, 0.0, -1.0, -3.0, 0.0, 2.0, 1.0, 3.0, -1.0, 2.0, -1.0, 0.0, 1.0, 0.0, -3.0, 0.0, 0.0, 0.0, -2.0, -4.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, -1.0, 1.0, 2.0, -2.0, 1.0, 0.0, -1.0, 3.0, 2.0, -1.0, 0.0, 3.0, 1.0, 3.0, 0.0, 3.0, 0.0, 0.0, 0.0, 2.0, 0.0, -1.0, -1.0, 1.0, -2.0, -1.0, 0.0, 0.0, -1.0, 3.0, 1.0, 0.0, -2.0, 1.0, -1.0, 0.0, -1.0, 2.0, -2.0, 0.0, 1.0, 0.0, -1.0, 2.0, 0.0, 1.0, 1.0, 0.0, 1.0, -1.0, -2.0, -2.0, 0.0, 0.0, 2.0, 0.0, 1.0, 0.0, 2.0, 1.0, 0.0, 3.0, 0.0, 0.0, -1.0, 0.0, 0.0, 1.0, 0.0, -2.0, 1.0, 1.0, 0.0, 0.0, 1.0, 2.0, -1.0, -1.0, 0.0, 3.0, -1.0, -1.0, -1.0, 2.0, -1.0, 0.0, 2.0, 0.0, 1.0, 0.0, 1.0, -2.0, -2.0, -2.0, 0.0, -1.0, 1.0, 1.0, 1.0, -2.0, 1.0, -3.0, -3.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, -1.0, -1.0, -1.0, -1.0, 0.0, 0.0, 1.0, -2.0, 1.0, 1.0, -1.0, -1.0, 1.0, 2.0, 0.0, -2.0, 2.0, -1.0, -1.0, 0.0, 0.0, 1.0, -1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 2.0, -2.0, 0.0, 0.0, 0.0, -1.0, -1.0, -3.0, -3.0, 0.0, 0.0, 0.0, 0.0, 1.0, -2.0, 1.0, 2.0, -3.0, 2.0, 0.0, 1.0, -3.0, -2.0, 1.0, -1.0, 1.0, 0.0, -2.0, 0.0, 1.0, 0.0, -4.0, 3.0, -3.0, 1.0, -1.0, 1.0, -1.0, -2.0, -1.0, 2.0, -1.0]
     #from src import utils_plot
