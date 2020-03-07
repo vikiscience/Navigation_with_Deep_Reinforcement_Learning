@@ -4,7 +4,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 
-def plot_history_rolling_mean(hist, N=const.rolling_mean_N):
+def plot_history_rolling_mean(hist, N=const.rolling_mean_N, fp=const.file_path_img_score):
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
@@ -29,5 +29,5 @@ def plot_history_rolling_mean(hist, N=const.rolling_mean_N):
     plt.ylabel('Score (Sum of Rewards)')
     plt.title('Online Performance')
     plt.legend(['score', 'rolling_score (N={})'.format(N)], loc='best')
-    plt.savefig(const.file_path_img_score)
+    plt.savefig(fp)
     plt.close()

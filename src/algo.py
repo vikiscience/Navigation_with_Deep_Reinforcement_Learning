@@ -1,8 +1,11 @@
 import const
 from src import utils_plot
 
+from pathlib import Path
+
 
 class DQNAlgo:
+    image_path = const.file_path_img_score
 
     def __init__(self, env, agent,
                  num_episodes: int = const.num_episodes,
@@ -55,14 +58,14 @@ class DQNAlgo:
                 score += reward
                 t += 1
 
-            const.myprint("Episode: {}/{}, score: {}, e: {:.2}".format(e + 1, self.num_episodes, score, eps))
+            print("\r -> Episode: {}/{}, score: {}, e: {:.2}".format(e + 1, self.num_episodes, score, eps), end='')
             history.append(score)
 
             if (e + 1) % 100 == 0 or e + 1 == self.num_episodes:
                 self.agent.save()
 
         const.myprint('History:', history)
-        utils_plot.plot_history_rolling_mean(history)
+        utils_plot.plot_history_rolling_mean(history, fp=self.image_path)
 
         if with_close:
             self.env.close()
@@ -89,6 +92,10 @@ class DQNAlgo:
         print("Score: {}".format(score))
 
         self.env.close()
+
+    def set_image_path(self, i):
+        p = self.image_path
+        self.image_path = Path(p.parent, 'score_' + str(i) + p.suffix)
 
     def _get_glie(self, eps=None):
         if eps is None:
