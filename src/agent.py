@@ -2,6 +2,7 @@
 import const
 from src.model import DQN
 
+from pathlib import Path
 import random
 import numpy as np
 from collections import deque
@@ -72,6 +73,10 @@ class DQNAgent:
     def save(self):
         const.myprint('Saving model to:', self.model_path)
         self.model.save_weights(str(self.model_path))
+
+    def set_model_path(self, i):
+        p = self.model_path
+        self.model_path = Path(p.parent, 'model_' + str(i) + p.suffix)
 
     def _memorize(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
