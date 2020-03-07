@@ -35,7 +35,8 @@ class DQN(nn.Module):
         self.fc3 = nn.Linear(self.fc2_num, self.num_outputs)
 
         self.model = nn.Sequential(self.fc1, nn.ELU(), self.fc2, nn.ELU(), self.fc3)
-        print(self.model)
+
+        const.myprint(self.model)
 
     def fit(self, X, y):
         x_tensor = torch.Tensor(X)

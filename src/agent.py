@@ -66,11 +66,11 @@ class DQNAgent:
             self._update_target_model()
 
     def load(self):
-        print('Loading model from:', self.model_path)
+        const.myprint('Loading model from:', self.model_path)
         self.model.load_weights(str(self.model_path))
 
     def save(self):
-        print('Saving model to:', self.model_path)
+        const.myprint('Saving model to:', self.model_path)
         self.model.save_weights(str(self.model_path))
 
     def _memorize(self, state, action, reward, next_state, done):

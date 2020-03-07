@@ -13,6 +13,8 @@ random_seed = 0xABCD
 rolling_mean_N = 100
 state_size = 37
 action_size = 4
+episode_length = 300
+verbose = False
 
 # algo params
 num_episodes = 2000
@@ -32,3 +34,8 @@ batch_size = 64
 model_learning_rate = 0.0001
 model_fc1_num = 32
 model_fc2_num = 16
+
+
+def myprint(*args):
+    if verbose:
+        print(args)

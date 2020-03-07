@@ -23,7 +23,7 @@ class DQNAlgo:
         self.eps_min = eps_min
         self.eps_test = eps_test
 
-    def train(self):
+    def train(self, with_close=True):
 
         history = []
         eps = None
@@ -55,16 +55,19 @@ class DQNAlgo:
                 score += reward
                 t += 1
 
-            print('-' * 80, "\nEpisode: {}/{}, score: {}, e: {:.2}"
-                  .format(e + 1, self.num_episodes, score, eps), t)
+            const.myprint("Episode: {}/{}, score: {}, e: {:.2}".format(e + 1, self.num_episodes, score, eps))
             history.append(score)
 
             if (e + 1) % 100 == 0 or e + 1 == self.num_episodes:
                 self.agent.save()
 
-        print('History:', history)
+        const.myprint('History:', history)
         utils_plot.plot_history_rolling_mean(history)
-        self.env.close()
+
+        if with_close:
+            self.env.close()
+
+        return history
 
     def test(self):
         self.agent.load()
