@@ -1,16 +1,18 @@
 [//]: # (Image References)
 
 [image1]: https://user-images.githubusercontent.com/10624937/42135619-d90f2f28-7d12-11e8-8823-82b970a54d7e.gif "Trained Agent"
+[image2]: output/score_ref.png
+[report]: Report.md
 
-# Project 1: Navigation
+# Navigation with Deep Reinforcement Learning
 
 ### Introduction
 
-For this project, you will train an agent to navigate (and collect bananas!) in a large, square world.  
+In this project, an agent is trained to navigate (and collect bananas!) in a large, square world.  
 
 ![Trained Agent][image1]
 
-A reward of +1 is provided for collecting a yellow banana, and a reward of -1 is provided for collecting a blue banana.  Thus, the goal of your agent is to collect as many yellow bananas as possible while avoiding blue bananas.  
+A reward of +1 is provided for collecting a yellow banana, and a reward of -1 is provided for collecting a blue banana. Thus, the goal of the agent is to collect as many yellow bananas as possible while avoiding blue bananas.  
 
 The state space has 37 dimensions and contains the agent's velocity, along with ray-based perception of objects around agent's forward direction.  Given this information, the agent has to learn how to best select actions.  Four discrete actions are available, corresponding to:
 - **`0`** - move forward.
@@ -18,7 +20,11 @@ The state space has 37 dimensions and contains the agent's velocity, along with 
 - **`2`** - turn left.
 - **`3`** - turn right.
 
-The task is episodic, and in order to solve the environment, your agent must get an average score of +13 over 100 consecutive episodes.
+The task is episodic (episode length is 300 steps), and in order to solve the environment, the agent must get an average score of +13 over 100 consecutive episodes.
+
+Current best result is 16.61:
+
+![image2]
 
 ### Getting Started
 
@@ -32,24 +38,40 @@ The task is episodic, and in order to solve the environment, your agent must get
 
     (_For AWS_) If you'd like to train the agent on AWS (and have not [enabled a virtual screen](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Training-on-Amazon-Web-Service.md)), then please use [this link](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/Banana_Linux_NoVis.zip) to obtain the environment.
 
-2. Place the file in the DRLND GitHub repository, in the `p1_navigation/` folder, and unzip (or decompress) the file. 
+2. Place the file in a preferred folder, and unzip (or decompress) the file.
 
 ### Instructions
 
-Follow the instructions in `Navigation.ipynb` to get started with training your own agent!  
+Agent training is done using Python 3.6 and PyTorch 0.4.0.
 
-### (Optional) Challenge: Learning from Pixels
+1. Follow the instructions [here](https://github.com/udacity/deep-reinforcement-learning#dependencies) to install the working environment.
 
-After you have successfully completed the project, if you're looking for an additional challenge, you have come to the right place!  In the project, your agent learned from information such as its velocity, along with ray-based perception of objects around its forward direction.  A more challenging task would be to learn directly from pixels!
+2. In case that PyTorch v.0.4.0 fails to install via pip (eg. for Windows 10), do it manually:
 
-To solve this harder task, you'll need to download a new Unity environment.  This environment is almost identical to the project environment, where the only difference is that the state is an 84 x 84 RGB image, corresponding to the agent's first-person view.  (**Note**: Udacity students should not submit a project with this new environment.)
+   `conda install pytorch=0.4.0 -c pytorch`
 
-You need only select the environment that matches your operating system:
-- Linux: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana_Linux.zip)
-- Mac OSX: [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana.app.zip)
-- Windows (32-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana_Windows_x86.zip)
-- Windows (64-bit): [click here](https://s3-us-west-1.amazonaws.com/udacity-drlnd/P1/Banana/VisualBanana_Windows_x86_64.zip)
+3. Change the variable `file_name_env` in `const.py` to point at the downloaded Environment accordingly, eg. use the path to `Banana.exe` for Windows 10 (for other OS, see [here](https://github.com/udacity/deep-reinforcement-learning/blob/master/p1_navigation/Navigation.ipynb))
 
-Then, place the file in the `p1_navigation/` folder in the DRLND GitHub repository, and unzip (or decompress) the file.  Next, open `Navigation_Pixels.ipynb` and follow the instructions to learn how to use the Python API to control the agent.
+4. To test if the installation worked, try:
 
-(_For AWS_) If you'd like to train the agent on AWS, you must follow the instructions to [set up X Server](https://github.com/Unity-Technologies/ml-agents/blob/master/docs/Training-on-Amazon-Web-Service.md), and then download the environment for the **Linux** operating system above.
+   `python main.py`
+
+    This will print the Environment info. 
+
+5. To train your own agent with hyperparameter values specified in `const.py`, use the following command:
+
+   `python main.py -e train`
+
+6. To see the reference agent provided in this repo in action, execute:
+
+   `python main.py -e test -r`
+
+7. For other command line options, refer to: 
+
+   `python main.py --help`
+   
+### Model
+
+The problem of agent navigation was solved by utilizing Deep Reinforcment Learning setting, particularly by implementing DQN and Double DQN.
+
+For model details, see [report].
