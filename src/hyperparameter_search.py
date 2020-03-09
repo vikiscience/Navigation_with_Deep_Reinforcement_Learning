@@ -49,15 +49,16 @@ class MyNavigator(BaseEstimator, ClassifierMixin):
         self.model_fc1_num = model_fc1_num
         self.model_fc2_num = model_fc2_num
 
-    def fit(self, i: int):
+    def fit(self, i: int, env: utils_env.Environment):
         self.ag = agent.DQNAgent(state_size, action_size,
                                  self.use_double_dqn, self.memory_size,
                                  self.update_target_each_iter, self.gamma, self.batch_size,
                                  self.model_learning_rate, self.model_fc1_num, self.model_fc2_num)
         self.ag.set_model_path(i)  # save each candidate's model separately
 
-        self.al = algo.DQNAlgo(utils_env.env, self.ag,
-                               self.num_episodes, self.eps_0, self.eps_decay_factor, self.eps_min, self.eps_test)
+        self.al = algo.DQNAlgo(env, self.ag,
+                               self.num_episodes, self.eps_0, self.eps_decay_factor,
+                               self.eps_min, self.eps_test)
         self.al.set_image_path(i)  # save each candidate's score separately
 
         history = self.al.train(with_close=False)  # do not close the Env so that other agents can be trained
@@ -77,12 +78,22 @@ class MyNavigator(BaseEstimator, ClassifierMixin):
 
 
 def grid_search():
-    print('='*30, 'Grid Search', '='*30)
+    env = utils_env.Environment()
+
+    print('=' * 30, 'Grid Search', '=' * 30)
 
     params = {
-        'batch_size': [32, 128],
-        #'num_episodes': [5, 10],
-        'use_double_dqn': [True, False]
+        # 'num_episodes': [5, 10],  # test
+        'batch_size': [32, 64, 128],
+        'use_double_dqn': [True, False],
+        'eps_decay_factor': [0.99, 0.95, 0.9],
+        'gamma': [0.95, 0.9],
+        'update_target_each_iter': [2, 4, 8, 16],
+        'model_learning_rate': [0.001, 0.0001, 0.00001],
+        'model_fc1_num': [32, 20],
+        'model_fc2_num': [16, 10],
+        'num_episodes': [625, 700, 1000, 2000],
+        'memory_size': [20000, 40000]
     }
 
     grid = ParameterGrid(params)
@@ -92,11 +103,18 @@ def grid_search():
     best_grid = None
     best_grid_index = 0
     result_dict = {}
+    key_list = list(params.keys()) + ['score']
+    df = pd.DataFrame(columns=key_list)
 
     for i, g in enumerate(grid):
         rf.set_params(**g)
-        score = rf.fit(i)
+        score = rf.fit(i, env)
         result_dict[i] = {'score': score, 'grid': g}
+
+        d = g
+        d['score'] = score
+        df = df.append(d, ignore_index=True)
+
         print('Evaluated candidate:', i, result_dict[i])
         # save if best
         if score >= best_score:
@@ -110,4 +128,6 @@ def grid_search():
     print("==> Best score:", best_score)
     print("==> Best grid:", best_grid_index, best_grid)
 
-    utils_env.env.close()
+    print(df.pivot(index=key_list[0], columns=key_list[1], values=key_list[2]))
+
+    env.close()  # finally, close the Env
