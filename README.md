@@ -61,8 +61,10 @@ Agent training is done using Python 3.6 and PyTorch 0.4.0.
 5. To train your own agent with hyperparameter values specified in `const.py`, use the following command:
 
    `python main.py -e train`
+   
+   This will produce 2 files, `models/model.npy` and `output/score.png`
 
-6. To see the reference agent provided in this repo in action, execute:
+6. To see the **reference** agent provided in this repo in action, execute:
 
    `python main.py -e test -r`
 
