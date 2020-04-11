@@ -128,6 +128,13 @@ def grid_search():
     print("==> Best score:", best_score)
     print("==> Best grid:", best_grid_index, best_grid)
 
-    print(df.pivot(index=key_list[0], columns=key_list[1], values=key_list[2]))
+    if len(key_list) == 3:  # better overview as pivot table (only for 2 hyperparams)
+        for c in params.keys():  # if one hyperparam is a list of values
+            if df[c].dtype == object:
+                df[c] = df[c].astype(str)
+
+        print(df.pivot(index=key_list[0], columns=key_list[1], values=key_list[2]))
+    else:
+        print(df)
 
     env.close()  # finally, close the Env
