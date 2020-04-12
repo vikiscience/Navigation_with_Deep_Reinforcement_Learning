@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import const
+from src import buffer
 from src.model import DQN
 
 from pathlib import Path
@@ -27,7 +28,7 @@ class DQNAgent:
         self.num_states = num_states
         self.num_actions = num_actions
         self.use_double_dqn = use_double_dqn
-        self.memory = deque(maxlen=memory_size)
+        self.memory = buffer.ReplayBuffer(memory_size)
         self.update_target_each_iter = update_target_each_iter
         self.gamma = gamma
         self.batch_size = batch_size
@@ -86,9 +87,8 @@ class DQNAgent:
 
     def _replay_minibatch(self):
         # Sample a minibatch from the replay memory
-        minibatch = random.sample(self.memory, self.batch_size)
+        states_batch, action_batch, reward_batch, next_states_batch, done_batch = self.memory.sample(self.batch_size)
 
-        states_batch, action_batch, reward_batch, next_states_batch, done_batch = map(np.array, zip(*minibatch))
         states_batch = states_batch.reshape(states_batch.shape[0], -1)  # infer last dim (input)
         next_states_batch = next_states_batch.reshape(next_states_batch.shape[0], -1)
 
