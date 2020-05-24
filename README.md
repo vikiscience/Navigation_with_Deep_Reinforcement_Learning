@@ -74,6 +74,6 @@ Agent training is done using Python 3.6 and PyTorch 0.4.0.
    
 ### Model
 
-The problem of agent navigation was solved by utilizing Deep Reinforcment Learning setting, particularly by implementing DQN and Double DQN.
+The problem of agent navigation was solved by utilizing Deep Reinforcement Learning setting, particularly by implementing DQN and Double DQN.
 
 For model details, see [report].
